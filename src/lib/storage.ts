@@ -1,9 +1,11 @@
 // Safe LocalStorage wrapper with defensive error handling
+import { StudentProfile } from '../types/tka';
 
 const THEME_KEY = 'tka_theme';
 const BOOKMARKS_KEY = 'tka_bookmarks';
 const STUDY_PROGRESS_KEY = 'tka_study_progress';
 const EXAM_HISTORY_KEY = 'tka_exam_history';
+const STUDENT_PROFILE_KEY = 'tka_student_profile';
 
 export const storage = {
   getTheme: (): 'light' | 'dark' => {
@@ -24,6 +26,23 @@ export const storage = {
       } else {
         document.documentElement.classList.remove('dark');
       }
+    } catch {
+      // ignore
+    }
+  },
+
+  getStudentProfile: (): StudentProfile | null => {
+    try {
+      const raw = localStorage.getItem(STUDENT_PROFILE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  setStudentProfile: (profile: StudentProfile): void => {
+    try {
+      localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(profile));
     } catch {
       // ignore
     }
@@ -101,6 +120,7 @@ export const storage = {
       localStorage.removeItem(BOOKMARKS_KEY);
       localStorage.removeItem(STUDY_PROGRESS_KEY);
       localStorage.removeItem(EXAM_HISTORY_KEY);
+      localStorage.removeItem(STUDENT_PROFILE_KEY);
     } catch {
       // ignore
     }

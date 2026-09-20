@@ -35,8 +35,16 @@ export interface QuestionItem {
   };
 }
 
+export interface StudentProfile {
+  name: string;
+  school: string;
+  nisn?: string;
+  gender?: 'L' | 'P';
+}
+
 export interface UserExamSession {
   subject: SubjectType;
+  student?: StudentProfile;
   startTime: number;
   answers: Record<number, any>;
   doubtList: number[];
