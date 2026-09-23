@@ -1,43 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, HelpCircle, ArrowLeft, ArrowRight, Grid, AlertCircle, CheckCircle2, ChevronRight } from 'lucide-react';
-import { QuestionItem } from '../../types/tka';
+import { Clock, HelpCircle, ArrowLeft, ArrowRight, Grid, CheckCircle2 } from 'lucide-react';
+import type { ExamAnswers, QuestionItem, UserExamSession } from '../../types/tka';
+import { isComplete, matrixChoices, normalizeAnswers } from '../../lib/exam';
 import { MathView } from '../ui/MathView';
 import { tapScale } from '../../lib/motion';
 
 interface CbtExamViewProps {
   subjectName: string;
   questions: QuestionItem[];
-  onFinishExam: (answers: Record<number, any>, doubtList: number[]) => void;
+  session: UserExamSession;
+  onProgress: (session: UserExamSession) => void;
+  onFinishExam: (answers: ExamAnswers, doubtList: number[]) => void;
   onExit: () => void;
 }
 
 export const CbtExamView: React.FC<CbtExamViewProps> = ({
   subjectName,
   questions,
+  session,
+  onProgress,
   onFinishExam,
   onExit,
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, any>>({});
-  const [doubtList, setDoubtList] = useState<number[]>([]);
-  const [timeLeft, setTimeLeft] = useState(75 * 60); // 75 minutes in seconds
+  const [currentIndex, setCurrentIndex] = useState(Math.min(Math.max(session.currentIndex, 0), questions.length - 1));
+  const [answers, setAnswers] = useState<ExamAnswers>(() => normalizeAnswers(questions, session.answers));
+  const [doubtList, setDoubtList] = useState<number[]>(session.doubtList.filter(id => questions.some(q => q.id === id)));
+  const [timeLeft, setTimeLeft] = useState(() => Math.max(0, Math.ceil((session.deadline - Date.now()) / 1000)));
   const [showDrawer, setShowDrawer] = useState(false);
   const [showConfirmFinish, setShowConfirmFinish] = useState(false);
+  const [showConfirmExit, setShowConfirmExit] = useState(false);
+  const submitted = useRef(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showDrawer && !showConfirmFinish && !showConfirmExit) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const controls = () => [...(dialogRef.current?.querySelectorAll<HTMLElement>('button') ?? [])];
+    controls()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setShowDrawer(false); setShowConfirmFinish(false); setShowConfirmExit(false); }
+      if (event.key !== 'Tab') return;
+      const items = controls();
+      const first = items[0]; const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => { document.removeEventListener('keydown', onKeyDown); previous?.focus(); };
+  }, [showDrawer, showConfirmFinish, showConfirmExit]);
+
+  useEffect(() => {
+    const onBeforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
 
   const currentQ = questions[currentIndex];
 
-  // Countdown timer
+  // The deadline survives refresh, background tabs and device sleep.
   useEffect(() => {
-    if (timeLeft <= 0) {
-      onFinishExam(answers, doubtList);
-      return;
-    }
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
+    const update = () => setTimeLeft(Math.max(0, Math.ceil((session.deadline - Date.now()) / 1000)));
+    update();
+    const timer = setInterval(update, 1000);
+    document.addEventListener('visibilitychange', update);
     return () => clearInterval(timer);
-  }, [timeLeft, answers, doubtList, onFinishExam]);
+  }, [session.deadline]);
+
+  useEffect(() => {
+    if (submitted.current || Date.now() >= session.deadline) return;
+    onProgress({ subject: session.subject, startTime: session.startTime, deadline: session.deadline, answers, doubtList, currentIndex });
+  }, [answers, doubtList, currentIndex, session.subject, session.startTime, session.deadline, onProgress]);
+
+  const finish = useCallback(() => {
+    if (submitted.current) return;
+    submitted.current = true;
+    onFinishExam(answers, doubtList);
+  }, [answers, doubtList, onFinishExam]);
+
+  useEffect(() => {
+    if (timeLeft === 0) finish();
+  }, [timeLeft, finish]);
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -48,19 +92,19 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
   const handleSelectOption = (optId: string) => {
     setAnswers(prev => ({
       ...prev,
-      [currentQ.id]: optId,
+      [currentQ.id]: currentQ.type === 'pg_kompleks'
+        ? ((Array.isArray(prev[currentQ.id]) ? prev[currentQ.id] as string[] : []).includes(optId)
+          ? (prev[currentQ.id] as string[]).filter(id => id !== optId)
+          : [...(Array.isArray(prev[currentQ.id]) ? prev[currentQ.id] as string[] : []), optId].sort())
+        : optId,
     }));
   };
 
   const handleSelectMatrix = (rowId: string, val: string) => {
-    const existing = answers[currentQ.id] || {};
-    setAnswers(prev => ({
-      ...prev,
-      [currentQ.id]: {
-        ...existing,
-        [rowId]: val,
-      },
-    }));
+    setAnswers(prev => ({ ...prev, [currentQ.id]: {
+      ...(typeof prev[currentQ.id] === 'object' && !Array.isArray(prev[currentQ.id]) ? prev[currentQ.id] as Record<string, string> : {}),
+      [rowId]: val,
+    } }));
   };
 
   const toggleDoubt = () => {
@@ -73,7 +117,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
   };
 
   const isCurrentDoubt = doubtList.includes(currentQ?.id);
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = questions.filter(q => isComplete(q, answers[q.id])).length;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 pb-24 text-slate-800 dark:text-slate-100">
@@ -83,7 +127,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
           <div className="flex items-center gap-3">
             <motion.button
               whileTap={tapScale}
-              onClick={onExit}
+              onClick={() => setShowConfirmExit(true)}
               className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors"
               title="Keluar dari Ujian"
             >
@@ -91,7 +135,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
             </motion.button>
             <div className="text-left">
               <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 block uppercase tracking-wider">
-                Simulasi CBT Resmi
+                Latihan CBT Mandiri
               </span>
               <h2 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
                 {subjectName}
@@ -120,7 +164,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
             >
               <Grid className="w-4 h-4 text-indigo-500" />
               <span className="hidden sm:inline">Daftar Soal</span>
-              <span className="font-num">({answeredCount}/30)</span>
+              <span className="font-num">({answeredCount}/{questions.length})</span>
             </motion.button>
           </div>
         </div>
@@ -166,14 +210,14 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
                   />
                 </div>
               )}
-              <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-h-52 overflow-y-auto pr-1">
+              <div className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed max-h-52 overflow-y-auto pr-1">
                 <MathView content={currentQ.stimulusText} />
               </div>
             </div>
           )}
 
           {/* Question Text */}
-          <div className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
+          <div className="text-base font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
             {currentQ.questionImage && (
               <div className="my-3 text-center">
                 <img
@@ -190,13 +234,16 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
           {currentQ.options && currentQ.options.length > 0 && (
             <div className="space-y-2.5 pt-2">
               {currentQ.options.map((opt) => {
-                const isSelected = answers[currentQ.id] === opt.id;
+                const isSelected = currentQ.type === 'pg_kompleks'
+                  ? Array.isArray(answers[currentQ.id]) && (answers[currentQ.id] as string[]).includes(opt.id)
+                  : answers[currentQ.id] === opt.id;
                 return (
                   <motion.button
                     key={opt.id}
                     whileTap={tapScale}
                     onClick={() => handleSelectOption(opt.id)}
-                    className={`w-full text-left p-3.5 rounded-xl border text-sm flex items-start gap-3 transition-all cursor-pointer ${
+                    aria-pressed={isSelected}
+                    className={`w-full min-h-11 text-left p-3.5 rounded-xl border text-base flex items-start gap-3 transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-indigo-50 dark:bg-indigo-950/50 border-indigo-600 text-indigo-950 dark:text-indigo-100 font-semibold shadow-sm'
                         : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80'
@@ -220,28 +267,30 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
             </div>
           )}
 
-          {/* Matrix / Pernyataan Benar-Salah */}
+          {/* Matrix choices come from this question's answer vocabulary. */}
           {currentQ.matrixRows && currentQ.matrixRows.length > 0 && (
             <div className="space-y-3 pt-2">
               {currentQ.matrixRows.map((row) => {
-                const currentVal = (answers[currentQ.id] || {})[row.id];
+                const matrixAnswer = answers[currentQ.id];
+                const currentVal = matrixAnswer && !Array.isArray(matrixAnswer) && typeof matrixAnswer === 'object' ? matrixAnswer[row.id] : undefined;
                 return (
                   <div
                     key={row.id}
                     className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 space-y-2"
                   >
-                    <div className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 flex gap-2">
+                    <div className="text-sm sm:text-base text-slate-800 dark:text-slate-200 flex gap-2">
                       <span className="font-bold text-indigo-500">{row.id}.</span>
                       <MathView content={row.statement} />
                     </div>
                     <div className="flex gap-2 justify-end">
-                      {['Benar', 'Salah'].map((choice) => {
+                      {matrixChoices(currentQ).map((choice) => {
                         const isChosen = currentVal === choice;
                         return (
                           <button
                             key={choice}
                             onClick={() => handleSelectMatrix(row.id, choice)}
-                            className={`px-4 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                            aria-pressed={isChosen}
+                            className={`min-h-11 px-4 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                               isChosen
                                 ? choice === 'Benar'
                                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
@@ -318,6 +367,8 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
         {showDrawer && (
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
             <motion.div
+              ref={dialogRef}
+              role="dialog" aria-modal="true" aria-label="Daftar nomor soal"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
@@ -352,7 +403,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
               {/* Grid 1-30 */}
               <div className="grid grid-cols-6 sm:grid-cols-6 gap-2.5 overflow-y-auto py-2 flex-1">
                 {questions.map((q, idx) => {
-                  const isAns = answers[q.id] !== undefined;
+                  const isAns = isComplete(q, answers[q.id]);
                   const isDoubt = doubtList.includes(q.id);
                   const isCurrent = currentIndex === idx;
 
@@ -402,6 +453,8 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
         {showConfirmFinish && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div
+              ref={dialogRef}
+              role="dialog" aria-modal="true" aria-labelledby="finish-title"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -410,11 +463,11 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
               <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              <h3 id="finish-title" className="text-base font-bold text-slate-900 dark:text-white">
                 Kumpulkan Lembar Jawaban?
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                Kamu telah menjawab <strong className="text-indigo-500 font-num">{answeredCount} dari 30 soal</strong>.
+                Kamu telah menjawab <strong className="text-indigo-500 font-num">{answeredCount} dari {questions.length} soal</strong>.
                 {doubtList.length > 0 && (
                   <span className="text-amber-500 block mt-1">
                     ⚠️ Masih ada {doubtList.length} nomor bertanda ragu-ragu.
@@ -431,7 +484,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
                 <button
                   onClick={() => {
                     setShowConfirmFinish(false);
-                    onFinishExam(answers, doubtList);
+                    finish();
                   }}
                   className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm shadow-emerald-500/20 transition-colors"
                 >
@@ -442,6 +495,18 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
           </div>
         )}
       </AnimatePresence>
+      {showConfirmExit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" role="presentation">
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="exit-title" className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 space-y-4">
+            <h3 id="exit-title" className="font-bold">Tinggalkan latihan?</h3>
+            <p className="text-sm">Jawaban tersimpan. Waktu tetap berjalan dan latihan dapat dilanjutkan dari beranda.</p>
+            <div className="flex gap-2">
+              <button className="flex-1 min-h-11 rounded-xl border" onClick={() => setShowConfirmExit(false)}>Tetap di sini</button>
+              <button className="flex-1 min-h-11 rounded-xl bg-indigo-600 text-white" onClick={onExit}>Keluar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

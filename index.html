@@ -1,29 +1,44 @@
 <!doctype html>
-<html lang="id" class="dark">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>TKA SD Mastery — Bank Soal & Pembahasan Lengkap Kelas 6</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TKA SD Mastery — Latihan Matematika dan Bahasa Indonesia</title>
+    <meta name="description" content="Latihan mandiri TKA SD/MI: 60 soal Matematika dan Bahasa Indonesia, pembahasan, serta latihan CBT berwaktu." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://tka-sd-mastery.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TKA SD Mastery" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:title" content="TKA SD Mastery — Latihan Mandiri" />
+    <meta property="og:description" content="Belajar dari 60 soal dan latihan CBT berwaktu untuk SD/MI." />
+    <meta property="og:url" content="https://tka-sd-mastery.vercel.app/" />
+    <meta property="og:image" content="https://tka-sd-mastery.vercel.app/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TKA SD Mastery — Latihan Mandiri" />
+    <meta name="twitter:description" content="Belajar dari 60 soal dan latihan CBT berwaktu untuk SD/MI." />
+    <meta name="twitter:image" content="https://tka-sd-mastery.vercel.app/og-card.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"TKA SD Mastery","url":"https://tka-sd-mastery.vercel.app/","inLanguage":"id","description":"Latihan mandiri Matematika dan Bahasa Indonesia untuk SD/MI."}</script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <!-- KaTeX CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <!-- Anti-FOUC Theme Script -->
     <script>
       (function() {
         try {
           var saved = localStorage.getItem('tka_theme');
-          var theme = saved ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark');
+          var theme = saved === 'light' || saved === 'dark' ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
           if (theme === 'dark') {
             document.documentElement.classList.add('dark');
           } else {
             document.documentElement.classList.remove('dark');
           }
         } catch (e) {
-          document.documentElement.classList.add('dark');
+          document.documentElement.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
         }
       })();
     </script>

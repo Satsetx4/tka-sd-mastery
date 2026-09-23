@@ -1,15 +1,12 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Award, CheckCircle2, Bookmark, BookOpen, Calculator, RotateCcw, Sparkles, TrendingUp } from 'lucide-react';
+import { Award, Bookmark, BookOpen, Calculator, Sparkles } from 'lucide-react';
 import { storage } from '../lib/storage';
-import { tapScale } from '../lib/motion';
 
 interface ReportPageProps {
   mathStudiedCount: number;
   indoStudiedCount: number;
   bookmarks: string[];
-  onOpenStudy: (subject: 'matematika' | 'bahasa_indonesia') => void;
-  onDataReset: () => void;
+  onOpenStudy: (subject: 'matematika' | 'bahasa_indonesia', questionId?: number) => void;
 }
 
 export const ReportPage: React.FC<ReportPageProps> = ({
@@ -17,7 +14,6 @@ export const ReportPage: React.FC<ReportPageProps> = ({
   indoStudiedCount,
   bookmarks,
   onOpenStudy,
-  onDataReset,
 }) => {
   const history = storage.getExamHistory();
   const mathPercent = Math.round((mathStudiedCount / 30) * 100);
@@ -31,12 +27,12 @@ export const ReportPage: React.FC<ReportPageProps> = ({
       <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-emerald-600 text-white shadow-lg space-y-3">
         <div className="flex items-center gap-2 text-indigo-200 text-xs font-semibold">
           <Award className="w-4 h-4 text-amber-300" />
-          <span>Rapor Kumulatif Siswa</span>
+          <span>Catatan Belajar Siswa</span>
         </div>
-        <h2 className="text-xl sm:text-2xl font-bold">Peta Kesiapan TKA Nasional</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">Progres Belajar Mandiri</h2>
         <div className="flex items-end gap-2 pt-2">
           <span className="text-5xl font-num font-extrabold leading-none">{overallPercent}%</span>
-          <span className="text-xs text-indigo-200 mb-1">Total Materi Terkuasai ({totalStudied}/60 Soal)</span>
+          <span className="text-xs text-indigo-200 mb-1">Soal ditandai sudah dipelajari ({totalStudied}/60)</span>
         </div>
       </div>
 
@@ -57,7 +53,7 @@ export const ReportPage: React.FC<ReportPageProps> = ({
             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${mathPercent}%` }} />
           </div>
           <p className="text-xs text-slate-500">
-            {mathStudiedCount} dari 30 butir soal telah dipelajari dengan pemahaman konsep.
+            {mathStudiedCount} dari 30 soal ditandai sudah dipelajari.
           </p>
           <button
             onClick={() => onOpenStudy('matematika')}
@@ -82,7 +78,7 @@ export const ReportPage: React.FC<ReportPageProps> = ({
             <div className="h-full bg-amber-500 rounded-full" style={{ width: `${indoPercent}%` }} />
           </div>
           <p className="text-xs text-slate-500">
-            {indoStudiedCount} dari 30 butir soal telah dipelajari dengan pemahaman konsep.
+            {indoStudiedCount} dari 30 soal ditandai sudah dipelajari.
           </p>
           <button
             onClick={() => onOpenStudy('bahasa_indonesia')}
@@ -110,7 +106,7 @@ export const ReportPage: React.FC<ReportPageProps> = ({
               return (
                 <button
                   key={bm}
-                  onClick={() => onOpenStudy(subj as any)}
+                  onClick={() => onOpenStudy(subj === 'matematika' ? 'matematika' : 'bahasa_indonesia', Number(qId))}
                   className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:border-indigo-500 transition-colors cursor-pointer"
                 >
                   {subj === 'matematika' ? '🔢 Matik' : '📖 Indo'} No. {qId}
@@ -120,6 +116,18 @@ export const ReportPage: React.FC<ReportPageProps> = ({
           </div>
         )}
       </div>
+
+      <section className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+        <h3 className="text-sm font-bold">Riwayat latihan CBT</h3>
+        {history.length === 0 ? <p className="text-sm text-slate-500">Belum ada latihan yang selesai. Nilai akan tampil di sini setelah kamu mengumpulkan jawaban.</p> :
+          <ul className="space-y-2">
+            {history.map(item => <li key={item.id} className="flex justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-sm">
+              <span>{item.subject === 'matematika' ? 'Matematika' : 'Bahasa Indonesia'}<small className="block text-slate-500">{new Date(item.finishedAt).toLocaleString('id-ID')}</small></span>
+              <strong>{item.score}/100 <small className="block font-normal text-slate-500">{item.correct} benar · {item.empty} kosong</small></strong>
+            </li>)}
+          </ul>}
+        <p className="text-xs text-slate-500">Nilai latihan terpisah dari penanda soal yang sudah dipelajari.</p>
+      </section>
 
       {/* Exam Day Strategy Tips */}
       <div className="p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-900/30 space-y-2">

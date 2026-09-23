@@ -14,6 +14,9 @@ export interface MatrixRow {
   correctAnswer: string;
 }
 
+export type QuestionAnswer = string | string[] | Record<string, string>;
+export type ExamAnswers = Record<number, QuestionAnswer>;
+
 export interface QuestionItem {
   id: number;
   subject: SubjectType;
@@ -26,7 +29,7 @@ export interface QuestionItem {
   questionImage?: string | null;
   options?: OptionItem[] | null;
   matrixRows?: MatrixRow[] | null;
-  officialKey: string;
+  answerKey: string;
   explanation: {
     concept: string;
     steps: string[];
@@ -38,17 +41,24 @@ export interface QuestionItem {
 export interface StudentProfile {
   name: string;
   school: string;
-  nisn?: string;
-  gender?: 'L' | 'P';
 }
 
 export interface UserExamSession {
   subject: SubjectType;
-  student?: StudentProfile;
   startTime: number;
-  answers: Record<number, any>;
+  deadline: number;
+  answers: ExamAnswers;
   doubtList: number[];
-  completed: boolean;
+  currentIndex: number;
+}
+
+export interface ExamResult {
+  id: number;
+  subject: SubjectType;
+  finishedAt: number;
   score: number;
-  finishedAt?: number;
+  correct: number;
+  wrong: number;
+  empty: number;
+  answers: ExamAnswers;
 }

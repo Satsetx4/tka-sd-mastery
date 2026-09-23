@@ -13,7 +13,7 @@ export const MathView: React.FC<MathViewProps> = ({ content, className = '' }) =
     // Clean up stray "IMG" tokens before image markers and handle any __IMG__url__ formats
     let normalized = content.replace(/(?:^|\n)\s*IMG\s*(?=\n|!\[)/gi, '\n');
     normalized = normalized.replace(/__IMG__([^\s_]+)__/g, (_, url) => {
-      const match = url.match(/([^\/]+\.png)/i);
+      const match = url.match(/([^/]+\.png)/i);
       const src = match ? `/cbt_images/${match[1]}` : url;
       return `![Ilustrasi](${src})`;
     });
@@ -31,7 +31,7 @@ export const MathView: React.FC<MathViewProps> = ({ content, className = '' }) =
     });
 
     // Split text into tokens by $$...$$ and $...$
-    const regex = /(\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$)/g;
+    const regex = /(\$\$[\s\S]*?\$\$|\$[^$\n]+?\$)/g;
     const parts = textWithImgPlaceholders.split(regex);
 
     const htmlParts = parts.map((part) => {

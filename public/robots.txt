@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://tka-sd-mastery.vercel.app/sitemap.xml
