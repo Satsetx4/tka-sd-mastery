@@ -319,7 +319,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
             whileTap={tapScale}
             disabled={currentIndex === 0}
             onClick={() => setCurrentIndex(prev => prev - 1)}
-            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 disabled:opacity-40 cursor-pointer"
+            className="min-w-0 flex-1 sm:flex-none px-2 sm:px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 disabled:opacity-40 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Sebelumnya</span>
@@ -329,7 +329,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
           <motion.button
             whileTap={tapScale}
             onClick={toggleDoubt}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`min-w-0 flex-1 sm:flex-none px-2 sm:px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               isCurrentDoubt
                 ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-sm'
                 : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
@@ -344,7 +344,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
             <motion.button
               whileTap={tapScale}
               onClick={() => setCurrentIndex(prev => prev + 1)}
-              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-sm shadow-indigo-500/20 cursor-pointer"
+              className="min-w-0 flex-1 sm:flex-none px-2 sm:px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-sm shadow-indigo-500/20 cursor-pointer"
             >
               <span>Berikutnya</span>
               <ArrowRight className="w-4 h-4" />
@@ -353,7 +353,7 @@ export const CbtExamView: React.FC<CbtExamViewProps> = ({
             <motion.button
               whileTap={tapScale}
               onClick={() => setShowConfirmFinish(true)}
-              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-500/20 cursor-pointer"
+              className="min-w-0 flex-1 sm:flex-none px-2 sm:px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-500/20 cursor-pointer"
             >
               <span>Selesai Tes</span>
               <CheckCircle2 className="w-4 h-4" />
