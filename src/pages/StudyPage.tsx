@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Filter, Bookmark, CheckCircle2, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { QuestionItem, SubjectType } from '../types/tka';
 import { StudyCard } from '../components/features/StudyCard';
-import { tapScale } from '../lib/motion';
+import { topicGroup } from '../lib/topics';
 
 interface StudyPageProps {
   subject: SubjectType;
@@ -24,14 +23,25 @@ export const StudyPage: React.FC<StudyPageProps> = ({
   onToggleStudied,
   targetQuestionId,
 }) => {
-  const [filterType, setFilterType] = useState<'all' | 'unstudied' | 'studied' | 'bookmarked'>('all');
+  type StudyFilter = 'all' | 'unstudied' | 'studied' | 'bookmarked';
+  const [filterType, setFilterType] = useState<StudyFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
+  const [visibleCount, setVisibleCount] = useState(targetQuestionId == null ? 5 : questions.length);
+
+  useEffect(() => {
+    if (targetQuestionId == null) return;
+    const scrollToTarget = () => document.getElementById(`question-${subject}-${targetQuestionId}`)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    const frame = requestAnimationFrame(scrollToTarget);
+    // Images above the target can change height after the first layout.
+    const retries = [window.setTimeout(scrollToTarget, 300), window.setTimeout(scrollToTarget, 900)];
+    return () => { cancelAnimationFrame(frame); retries.forEach(window.clearTimeout); };
+  }, [subject, targetQuestionId, questions.length]);
 
   // Extract unique topics
   const topics = useMemo(() => {
     const set = new Set<string>();
-    questions.forEach(q => set.add(q.topic));
+    questions.forEach(q => set.add(topicGroup(q)));
     return Array.from(set);
   }, [questions]);
 
@@ -48,7 +58,7 @@ export const StudyPage: React.FC<StudyPageProps> = ({
       if (filterType === 'bookmarked' && !isBookmarked) return false;
 
       // Topic filter
-      if (selectedTopic !== 'all' && q.topic !== selectedTopic) return false;
+      if (selectedTopic !== 'all' && topicGroup(q) !== selectedTopic) return false;
 
       // Search query
       if (searchQuery.trim()) {
@@ -63,8 +73,6 @@ export const StudyPage: React.FC<StudyPageProps> = ({
       return true;
     });
   }, [questions, filterType, selectedTopic, searchQuery, studiedProgress, bookmarks]);
-
-  const subjectTitle = subject === 'matematika' ? 'Matematika (Numerasi)' : 'Bahasa Indonesia (Literasi)';
 
   return (
     <div className="space-y-5 text-left pb-16">
@@ -83,17 +91,17 @@ export const StudyPage: React.FC<StudyPageProps> = ({
 
         {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          {[
+          {([
             { id: 'all', label: `Semua (${questions.length})` },
-            { id: 'unstudied', label: 'Belum Paham' },
-            { id: 'studied', label: 'Sudah Paham' },
+            { id: 'unstudied', label: 'Belum Dipelajari' },
+            { id: 'studied', label: 'Sudah Dipelajari' },
             { id: 'bookmarked', label: 'Ditandai' },
-          ].map((pill) => {
+          ] as { id: StudyFilter; label: string }[]).map((pill) => {
             const isActive = filterType === pill.id;
             return (
               <button
                 key={pill.id}
-                onClick={() => setFilterType(pill.id as any)}
+                onClick={() => { setFilterType(pill.id); setVisibleCount(5); }}
                 className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap border transition-all cursor-pointer ${
                   isActive
                     ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
@@ -114,7 +122,7 @@ export const StudyPage: React.FC<StudyPageProps> = ({
             onChange={(e) => setSelectedTopic(e.target.value)}
             className="bg-transparent text-xs text-slate-600 dark:text-slate-300 font-medium focus:outline-none cursor-pointer truncate max-w-full"
           >
-            <option value="all">Semua Kategori Topik</option>
+            <option value="all">Semua Kelompok Materi</option>
             {topics.map((t) => (
               <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
                 {t}
@@ -133,21 +141,23 @@ export const StudyPage: React.FC<StudyPageProps> = ({
             <p className="text-xs text-slate-500">Coba ubah kata kunci pencarian atau pilih filter lain.</p>
           </div>
         ) : (
-          filteredQuestions.map((q) => {
+          filteredQuestions.slice(0, visibleCount).map((q) => {
             const key = `${q.subject}-${q.id}`;
             return (
+              <div key={q.id} id={`question-${subject}-${q.id}`} className="scroll-mt-24">
               <StudyCard
-                key={q.id}
                 item={q}
                 isBookmarked={bookmarks.includes(key)}
                 isStudied={!!studiedProgress[key]}
                 onToggleBookmark={onToggleBookmark}
                 onToggleStudied={onToggleStudied}
               />
+              </div>
             );
           })
         )}
       </div>
+      {filteredQuestions.length > visibleCount && <button onClick={() => setVisibleCount(count => count + 5)} className="w-full min-h-11 rounded-xl border border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-semibold">Tampilkan 5 soal berikutnya ({filteredQuestions.length - visibleCount} tersisa)</button>}
     </div>
   );
 };

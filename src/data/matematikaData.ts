@@ -33,7 +33,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(A)",
+    "answerKey": "(A)",
     "explanation": {
       "concept": "Prioritas operasi hitung: Kerjakan perkalian terlebih dahulu, samakan penyebut pecahan, lalu selesaikan penjumlahan dan pengurangan secara berurutan.",
       "steps": [
@@ -80,7 +80,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(C) Rp27.000,00",
+    "answerKey": "(C) Rp27.000,00",
     "explanation": {
       "concept": "Diskon dihitung dari total harga barang sebelum potongan.",
       "steps": [
@@ -121,7 +121,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Salah"
       }
     ],
-    "officialKey": "A (Benar) B (Benar) C (Salah)",
+    "answerKey": "A (Benar) B (Benar) C (Salah)",
     "explanation": {
       "concept": "Menghitung total kapasitas produksi dan membaginya sesuai proporsi botol besar dan botol kecil.",
       "steps": [
@@ -164,7 +164,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B) 3",
+    "answerKey": "(B) 3",
     "explanation": {
       "concept": "Pada dadu standar, jumlah titik pada dua sisi yang saling berhadapan (berlawanan) selalu berjumlah sama, yaitu 7.",
       "steps": [
@@ -184,9 +184,25 @@ export const matematikaData: QuestionItem[] = [
     "stimulusImage": null,
     "questionText": "Pilihlah pernyataan yang benar sesuai dengan informasi tersebut! Jawaban benar lebih dari satu.",
     "questionImage": null,
-    "options": null,
+    "options": [
+      {
+        "id": "A",
+        "text": "Total berat semua isi paket adalah 4.425 gram.",
+        "isMath": false
+      },
+      {
+        "id": "B",
+        "text": "Berat mi instan dalam paket tersebut lebih dari 0,5 kilogram.",
+        "isMath": false
+      },
+      {
+        "id": "C",
+        "text": "Satu kemasan gula pasir lebih berat dibandingkan seluruh mi instan.",
+        "isMath": false
+      }
+    ],
     "matrixRows": null,
-    "officialKey": "(A) Total berat semua isi paket adalah 4.425 gram. (C) Satu kemasan gula pasir lebih berat dibandingkan seluruh mi instan.",
+    "answerKey": "(A) Total berat semua isi paket adalah 4.425 gram. (C) Satu kemasan gula pasir lebih berat dibandingkan seluruh mi instan.",
     "explanation": {
       "concept": "Konversi satuan berat ke gram: $1\\text{ kg} = 1.000\\text{ g}$, $1\\text{ hg} = 100\\text{ g}$.",
       "steps": [
@@ -227,7 +243,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Benar"
       }
     ],
-    "officialKey": "A (Benar) B (Salah ) C (Benar)",
+    "answerKey": "A (Benar) B (Salah ) C (Benar)",
     "explanation": {
       "concept": "Membaca dan membandingkan frekuensi data pengunjung perpustakaan dari diagram batang.",
       "steps": [
@@ -265,7 +281,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Salah"
       }
     ],
-    "officialKey": "A (Benar) B (Benar) C (Salah)",
+    "answerKey": "A (Benar) B (Benar) C (Salah)",
     "explanation": {
       "concept": "Setiap satu simbol buku mewakili jumlah tertentu buku asli.",
       "steps": [
@@ -308,7 +324,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(D) 2,80 hektar.",
+    "answerKey": "(D) 2,80 hektar.",
     "explanation": {
       "concept": "$1\\text{ hektar (ha)} = 10.000\\text{ m}^2 = 1\\text{ hm}^2$, $1\\text{ are} = 100\\text{ m}^2$.",
       "steps": [
@@ -350,7 +366,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B) 9 m 3",
+    "answerKey": "(B) 9 m 3",
     "explanation": {
       "concept": "Volume kubus atau balok: $V = p \\times l \\times t$ atau $V = s^3$.",
       "steps": [
@@ -392,7 +408,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B) 08.00",
+    "answerKey": "(B) 08.00",
     "explanation": {
       "concept": "Waktu tempuh = Jarak $\\div$ Kecepatan. Waktu tiba = Waktu berangkat + Waktu tempuh + Waktu istirahat.",
       "steps": [
@@ -429,7 +445,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Salah"
       }
     ],
-    "officialKey": "A (Benar) B (Benar) C (Salah)",
+    "answerKey": "A (Benar) B (Benar) C (Salah)",
     "explanation": {
       "concept": "Evaluasi kebenaran perbandingan pecahan dan desimal.",
       "steps": [
@@ -472,7 +488,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B) 0,25 kg",
+    "answerKey": "(B) 0,25 kg",
     "explanation": {
       "concept": "Menghitung selisih massa benda dalam satuan kilogram.",
       "steps": [
@@ -509,7 +525,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Benar"
       }
     ],
-    "officialKey": "A (Benar) B (Salah) C (Benar)",
+    "answerKey": "A (Benar) B (Salah) C (Benar)",
     "explanation": {
       "concept": "Mendeteksi beda/rasio tetap pada barisan angka.",
       "steps": [
@@ -529,9 +545,25 @@ export const matematikaData: QuestionItem[] = [
     "stimulusImage": null,
     "questionText": "Di antara pilihan berikut, kotak mana sajakah yang harus dibawa oleh Doni? Pilihlah jawaban yang benar! Jawaban benar lebih dari satu.",
     "questionImage": null,
-    "options": null,
+    "options": [
+      {
+        "id": "A",
+        "text": "Kotak berukuran 8 cm × 2 cm × 4 cm",
+        "isMath": false
+      },
+      {
+        "id": "B",
+        "text": "Kotak berukuran 4 cm × 4 cm × 4 cm",
+        "isMath": false
+      },
+      {
+        "id": "C",
+        "text": "Kotak berukuran 4 cm × 3 cm × 5 cm",
+        "isMath": false
+      }
+    ],
     "matrixRows": null,
-    "officialKey": "(A) Kotak berukuran 8 cm &times; 2 cm &times; 4 cm (B) Kotak berukuran 4 cm &times; 4 cm &times; 4 cm",
+    "answerKey": "(A) Kotak berukuran 8 cm &times; 2 cm &times; 4 cm (B) Kotak berukuran 4 cm &times; 4 cm &times; 4 cm",
     "explanation": {
       "concept": "Volume balok $V = p \\times l \\times t$. Kotak dengan volume 64 cm³.",
       "steps": [
@@ -568,7 +600,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Benar"
       }
     ],
-    "officialKey": "A (Salah) B (Benar) C (Benar)",
+    "answerKey": "A (Salah) B (Benar) C (Benar)",
     "explanation": {
       "concept": "Verifikasi data tabel terhadap pernyataan soal.",
       "steps": [
@@ -611,7 +643,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B) 5 cm",
+    "answerKey": "(B) 5 cm",
     "explanation": {
       "concept": "Mencari panjang sisi bangun datar dari keliling atau perbandingan sisi.",
       "steps": [
@@ -653,7 +685,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(C) 12&nbsp;minggu",
+    "answerKey": "(C) 12&nbsp;minggu",
     "explanation": {
       "concept": "Konversi durasi waktu ke satuan minggu.",
       "steps": [
@@ -695,7 +727,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(A) 1",
+    "answerKey": "(A) 1",
     "explanation": {
       "concept": "Mencari faktor persekutuan terbesar atau kelipatan persekutuan terkecil.",
       "steps": [
@@ -737,7 +769,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B)",
+    "answerKey": "(B)",
     "explanation": {
       "concept": "Visualisasi jaring-jaring kubus atau balok saat dirakit menjadi bangun utuh.",
       "steps": [
@@ -779,7 +811,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B) 68 m",
+    "answerKey": "(B) 68 m",
     "explanation": {
       "concept": "Keliling persegi panjang: $K = 2 \\times (p + l)$.",
       "steps": [
@@ -821,7 +853,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(C) 12 dus",
+    "answerKey": "(C) 12 dus",
     "explanation": {
       "concept": "Banyak dus yang diperlukan = Total barang $\\div$ Isi per dus.",
       "steps": [
@@ -864,7 +896,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B) Beni",
+    "answerKey": "(B) Beni",
     "explanation": {
       "concept": "Menentukan tokoh dengan nilai atau jumlah terbanyak/tersingkat.",
       "steps": [
@@ -906,7 +938,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(C) Belah ketupat",
+    "answerKey": "(C) Belah ketupat",
     "explanation": {
       "concept": "Bangun datar dengan 4 sisi sama panjang, 2 pasang sudut berhadapan sama besar, dan diagonal saling berpotongan tegak lurus.",
       "steps": [
@@ -948,7 +980,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(C) 10.05",
+    "answerKey": "(C) 10.05",
     "explanation": {
       "concept": "Menjumlahkan waktu dalam format jam dan menit.",
       "steps": [
@@ -990,7 +1022,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(B) 10",
+    "answerKey": "(B) 10",
     "explanation": {
       "concept": "Mencari nilai yang paling sering muncul atau nilai tengah.",
       "steps": [
@@ -1027,7 +1059,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Salah"
       }
     ],
-    "officialKey": "A (Benar) B (Salah) C (Salah)",
+    "answerKey": "A (Benar) B (Salah) C (Salah)",
     "explanation": {
       "concept": "Rata-rata = Jumlah semua data $\\div$ Banyaknya data.",
       "steps": [
@@ -1070,7 +1102,7 @@ export const matematikaData: QuestionItem[] = [
       }
     ],
     "matrixRows": null,
-    "officialKey": "(D) 75%",
+    "answerKey": "(D) 75%",
     "explanation": {
       "concept": "Mengubah pecahan biasa ke bentuk persen dengan mengalikan 100%.",
       "steps": [
@@ -1106,7 +1138,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Salah"
       }
     ],
-    "officialKey": "A (Benar) B (Benar) C (Salah)",
+    "answerKey": "A (Benar) B (Benar) C (Salah)",
     "explanation": {
       "concept": "Menilai kebenaran operasi hitung bilangan bulat bertanda.",
       "steps": [
@@ -1126,9 +1158,25 @@ export const matematikaData: QuestionItem[] = [
     "stimulusImage": null,
     "questionText": "Anak berusia 10 - 12 tahun membutuhkan protein paling sedikit 55 gram dalam sehari. Jika disediakan makanan berikut dengan berat masing-masing 250 gram, tentukanlah makanan yang dapat memenuhi kebutuhan protein harian mereka! Pilihlah jawaban yang benar! Jawaban benar lebih dari satu.",
     "questionImage": null,
-    "options": null,
+    "options": [
+      {
+        "id": "A",
+        "text": "Daging sapi",
+        "isMath": false
+      },
+      {
+        "id": "B",
+        "text": "Telur ayam",
+        "isMath": false
+      },
+      {
+        "id": "C",
+        "text": "Ikan",
+        "isMath": false
+      }
+    ],
     "matrixRows": null,
-    "officialKey": "(A) Daging sapi (C) Ikan",
+    "answerKey": "(A) Daging sapi (C) Ikan",
     "explanation": {
       "concept": "Mengidentifikasi jenis makanan berprotein tinggi dari sajian data.",
       "steps": [
@@ -1164,7 +1212,7 @@ export const matematikaData: QuestionItem[] = [
         "correctAnswer": "Benar"
       }
     ],
-    "officialKey": "A (Salah) B (Benar) C (Benar)",
+    "answerKey": "A (Salah) B (Benar) C (Benar)",
     "explanation": {
       "concept": "Membaca arah tren kenaikan dan penurunan data grafik garis.",
       "steps": [

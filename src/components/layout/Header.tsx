@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Moon, Sun, Sparkles, GraduationCap } from 'lucide-react';
 import { storage } from '../../lib/storage';
@@ -21,11 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   badgeText,
   badgeColor = 'indigo'
 }) => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-
-  useEffect(() => {
-    setTheme(storage.getTheme());
-  }, []);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => storage.getTheme());
 
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -75,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
               </p>
             ) : (
               <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
-                <Sparkles className="w-3 h-3 text-amber-400" /> Pusmendik Resmi
+                <Sparkles className="w-3 h-3 text-amber-400" /> Latihan mandiri
               </span>
             )}
           </div>

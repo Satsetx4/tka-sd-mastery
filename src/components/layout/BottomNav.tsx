@@ -15,7 +15,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
     { id: 'home', label: 'Beranda', icon: Home },
     { id: 'math', label: 'Matematika', icon: Calculator },
     { id: 'indo', label: 'B. Indonesia', icon: BookOpen },
-    { id: 'cbt', label: 'Tryout CBT', icon: Clock },
+    { id: 'cbt', label: 'Latihan CBT', icon: Clock },
     { id: 'report', label: 'Rapor', icon: Award },
   ] as const;
 
@@ -30,7 +30,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
             <motion.button
               key={tab.id}
               whileTap={tapScale}
-              onClick={() => onSelectTab(tab.id as NavTab)}
+              onClick={() => onSelectTab(tab.id)}
               className={`flex flex-col items-center justify-center w-14 h-12 rounded-xl transition-all relative cursor-pointer ${
                 isActive
                   ? 'text-indigo-600 dark:text-indigo-400 font-semibold'

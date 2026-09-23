@@ -1,78 +1,31 @@
-# 🎓 TKA SD Mastery — Platform Latihan & Simulasi CBT Soal TKA SD
+# TKA SD Mastery
 
-[![Deploy with Vercel](https://vercel.com/button)](https://tka-sd-mastery.vercel.app)
-[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+Aplikasi latihan mandiri untuk Matematika dan Bahasa Indonesia SD/MI. Aplikasi ini **bukan produk resmi Pusmendik**. Skor CBT hanya menghitung jawaban pada 30 soal per mata pelajaran dan bukan nilai atau prediksi hasil TKA.
 
-Aplikasi web interaktif modern yang menyajikan **60 Soal Resmi Tes Kemampuan Akademik (TKA) SD Kelas 6** (30 Matematika & 30 Bahasa Indonesia) lengkap dengan kunci jawaban resmi Pusmendik Kemendikdasmen, pembahasan langkah demi langkah, simulasi CBT bernilai waktu nyata, serta cetak rapor hasil belajar.
+## Fitur
 
-🌐 **Akses Live:** [https://tka-sd-mastery.vercel.app](https://tka-sd-mastery.vercel.app)
+- 60 soal dengan pembahasan, bookmark, kelompok materi, dan penanda soal yang sudah dipelajari.
+- CBT latihan 75 menit dengan pilihan ganda tunggal, pilihan ganda kompleks, dan matriks. Jawaban, nomor aktif, penanda ragu-ragu, dan tenggat waktu tersimpan di perangkat sehingga sesi bisa dilanjutkan setelah refresh. Waktu tetap berjalan saat halaman ditutup.
+- Penilaian satu poin per soal: pilihan ganda kompleks harus memilih seluruh opsi benar tanpa tambahan; matriks harus mengisi seluruh baris dengan tepat. Tidak ada kredit parsial.
+- Riwayat 20 latihan terakhir dan progres belajar ditampilkan terpisah. Semua data tersimpan lokal pada browser dan dapat dihapus dari tombol reset.
+- Tautan langsung ke materi atau nomor soal memakai hash, misalnya `/#/study/matematika/27`. Back browser pada CBT meminta konfirmasi; sesi dan waktu tetap berjalan jika keluar.
 
----
+## Rujukan dan batasan konten
 
-## ✨ Fitur Utama
+Kelompok materi dan contoh soal dapat dibandingkan dengan [halaman TKA SD/MI Pusmendik](https://pusmendik.kemendikdasmen.go.id/tka/tka/view/mata-pelajaran-wajib/sd) dan [kerangka asesmen TKA SD/MI](https://pusmendik.kemendikdasmen.go.id/tka/page/download). Sembilan soal pilihan ganda kompleks yang kehilangan opsi pada data repo awal telah dilengkapi dari halaman contoh soal tersebut. Kunci dan pembahasan dalam aplikasi tetap perlu ditinjau editorial; aplikasi tidak menyatakan dirinya sebagai sumber kunci resmi. Contoh soal dan ketentuan TKA dapat berubah di situs sumber.
 
-### 1. 📚 Mode Belajar & Bahas Detail (Study Mode)
-- **Katalog 60 Soal Lengkap:** 30 Soal Matematika (Numerasi, Geometri, Pecahan, Aljabar, Data) dan 30 Soal Bahasa Indonesia (Literasi, Teks Informasi, Fiksi, Ide Pokok).
-- **Semua Aset Gambar Lokal:** 59 gambar diagram batang, piktogram, denah, dan infografis di-hardcode lokal sehingga 100% selalu muncul tanpa masalah hotlink.
-- **Pembahasan Terstruktur:** Dilengkapi konsep dasar materi, langkah penyelesaian matematis, tips cepat menjawab, dan rujukan kunci resmi.
-- **Dukungan Rumus KaTeX:** Notasi matematika dan pecahan dirender presisi dan jernih.
+## Jalankan dan periksa
 
-### 2. ⏱️ Mode Simulasi Ujian CBT (Pusmendik Standard)
-- **Form Identitas Siswa:** Input nama peserta, asal sekolah, kelas, NISN, dan generator token dinamis sebelum ujian dimulai.
-- **Timer Real-time 75 Menit:** Menghitung mundur waktu ujian persis simulasi sesungguhnya dengan peringatan waktu menipis.
-- **Laci Navigasi Soal (Question Drawer):** Status visual setiap nomor (Belum dijawab, Sudah dijawab, dan Ragu-ragu).
-- **Penilaian Otomatis:** Perhitungan skor skala 0–100, persentase kelulusan, serta rincian benar/salah/kosong.
+```bash
+npm ci
+npm test
+npm run lint
+npm run build
+npm run dev
+```
 
-### 3. 📜 Rapor & Sertifikat Personal Cetak PDF
-- Rapor hasil ujian menampilkan identitas lengkap siswa, predikat capaian, dan analisa capaian per topik.
-- Tombol **Cetak / Simpan PDF** terintegrasi ramah cetak (`@media print`) bebas elemen navigasi web.
+Situs publik menggunakan satu URL utama sehingga `sitemap.xml` berisi beranda saja. Untuk Search Console, verifikasi domain melalui DNS atau tambahkan meta tag yang diberikan Google ke `index.html`, lalu kirim `https://tka-sd-mastery.vercel.app/sitemap.xml`.
 
-### 4. 🎨 Standar UI/UX Trendsetter (Anti-Slop Web)
-- **Dark Mode Elegan + Light Mode:** Transisi tema mulus dengan skrip anti-flicker (`localStorage` persistence).
-- **Tactile UI & Micro-interactions:** Tombol, kartu, dan opsi jawaban responsif dengan haptic visual feedback berbasis Framer Motion.
-- **Mobile First:** Nyaman digunakan dari smartphone, tablet, hingga layar desktop monitor besar.
+## Privasi
 
----
-
-## 🛠️ Tech Stack
-
-- **Framework:** React 19 + TypeScript + Vite
-- **Styling:** Tailwind CSS (v4)
-- **Animasi:** Framer Motion
-- **Notasi Matematika:** KaTeX
-- **Ikon Antarmuka:** Lucide React
-- **Deployment:** Vercel
-
----
-
-## 🚀 Menjalankan di Lokal
-
-1. **Clone repositori:**
-   ```bash
-   git clone https://github.com/Satsetx4/tka-sd-mastery.git
-   cd tka-sd-mastery
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Jalankan development server:**
-   ```bash
-   npm run dev
-   ```
-   Buka browser di `http://localhost:5173`.
-
-4. **Build untuk produksi:**
-   ```bash
-   npm run build
-   ```
-
----
-
-## 📄 Lisensi
-Dibuat untuk tujuan edukasi dan persiapan asesmen belajar siswa sekolah dasar di Indonesia.
+Nama dan sekolah bersifat opsional. Jangan masukkan NISN atau data sensitif. Tidak ada akun, server jawaban, atau sinkronisasi antarperangkat; menghapus penyimpanan browser juga menghapus riwayat lokal.

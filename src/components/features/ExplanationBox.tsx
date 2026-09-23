@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Lightbulb, Compass, Key } from 'lucide-react';
+import { Lightbulb, Compass, Key } from 'lucide-react';
 import { MathView } from '../ui/MathView';
 
 interface ExplanationBoxProps {
-  officialKey: string;
+  answerKey: string;
   concept: string;
   steps: string[];
   tips?: string;
@@ -12,11 +12,10 @@ interface ExplanationBoxProps {
 }
 
 export const ExplanationBox: React.FC<ExplanationBoxProps> = ({
-  officialKey,
+  answerKey,
   concept,
   steps,
   tips,
-  textEvidence
 }) => {
   return (
     <motion.div
@@ -35,16 +34,13 @@ export const ExplanationBox: React.FC<ExplanationBoxProps> = ({
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 block">
-                Kunci Jawaban Resmi Pusmendik
+                Kunci Latihan
               </span>
               <span className="text-sm font-bold text-slate-900 dark:text-white">
-                {officialKey}
+                {answerKey}
               </span>
             </div>
           </div>
-          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Terverifikasi Resmi
-          </span>
         </div>
 
         {/* Concept / Core Rule */}

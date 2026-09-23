@@ -1,48 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/layout/Header';
 import { BottomNav, NavTab } from './components/layout/BottomNav';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
-import { StudyPage } from './pages/StudyPage';
-import { ReportPage } from './pages/ReportPage';
-import { CbtExamView } from './components/features/CbtExamView';
-import { ScoreReportModal } from './components/features/ScoreReportModal';
 import { StudentFormModal } from './components/features/StudentFormModal';
 import { matematikaData } from './data/matematikaData';
 import { bahasaIndonesiaData } from './data/bahasaIndonesiaData';
 import { storage } from './lib/storage';
-import { SubjectType, StudentProfile } from './types/tka';
+import type { ExamAnswers, ExamResult, SubjectType, StudentProfile, UserExamSession } from './types/tka';
+import { EXAM_DURATION_MS, normalizeAnswers, scoreExam } from './lib/exam';
+import { hashForView, routeFromHash, type CurrentView } from './lib/routes';
 
-type CurrentView = 
-  | 'home' 
-  | 'study_math' 
-  | 'study_indo' 
-  | 'cbt_math' 
-  | 'cbt_indo' 
-  | 'cbt_result' 
-  | 'report';
+const StudyPage = React.lazy(() => import('./pages/StudyPage').then(module => ({ default: module.StudyPage })));
+const ReportPage = React.lazy(() => import('./pages/ReportPage').then(module => ({ default: module.ReportPage })));
+const CbtExamView = React.lazy(() => import('./components/features/CbtExamView').then(module => ({ default: module.CbtExamView })));
+const ScoreReportModal = React.lazy(() => import('./components/features/ScoreReportModal').then(module => ({ default: module.ScoreReportModal })));
 
 export function App() {
-  const [view, setView] = useState<CurrentView>('home');
-  const [bookmarks, setBookmarks] = useState<string[]>([]);
-  const [studiedProgress, setStudiedProgress] = useState<Record<string, boolean>>({});
-  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
+  const [view, setView] = useState<CurrentView>(() => {
+    if (location.hash) return routeFromHash(location.hash, !!storage.getActiveExam(), false).view;
+    const saved = storage.getView();
+    return saved === 'study_math' || saved === 'study_indo' || saved === 'report' ? saved : 'home';
+  });
+  const [bookmarks, setBookmarks] = useState<string[]>(() => storage.getBookmarks());
+  const [studiedProgress, setStudiedProgress] = useState<Record<string, boolean>>(() => storage.getStudyProgress());
+  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(() => storage.getStudentProfile());
   
   // Student modal & CBT trigger
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [pendingExamSubject, setPendingExamSubject] = useState<SubjectType>('matematika');
 
   // CBT state
-  const [examSubject, setExamSubject] = useState<SubjectType>('matematika');
-  const [examAnswers, setExamAnswers] = useState<Record<number, any>>({});
-  const [examDoubts, setExamDoubts] = useState<number[]>([]);
-  const [jumpQuestionId, setJumpQuestionId] = useState<number | null>(null);
+  const [examSubject, setExamSubject] = useState<SubjectType>(() => storage.getActiveExam()?.subject ?? 'matematika');
+  const [examAnswers, setExamAnswers] = useState<ExamAnswers>({});
+  const [activeExam, setActiveExam] = useState<UserExamSession | null>(() => storage.getActiveExam());
+  const activeDeadline = activeExam?.deadline;
+  const activeSubject = activeExam?.subject;
+  const [lastResult, setLastResult] = useState<ExamResult | null>(null);
+  const [jumpQuestionId, setJumpQuestionId] = useState<number | null>(() => routeFromHash(location.hash, !!storage.getActiveExam(), false).questionId);
 
-  // Sync state on mount
   useEffect(() => {
-    setBookmarks(storage.getBookmarks());
-    setStudiedProgress(storage.getStudyProgress());
-    setStudentProfile(storage.getStudentProfile());
+    if (view === 'home') storage.clearView();
+    else if (view !== 'cbt_math' && view !== 'cbt_indo' && view !== 'cbt_result') storage.setView(view);
+  }, [view]);
+
+  useEffect(() => {
+    const target = hashForView(view, jumpQuestionId);
+    if (location.hash !== target) location.hash = target;
+  }, [view, jumpQuestionId]);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      const route = routeFromHash(location.hash, !!activeExam, !!lastResult);
+      if ((view === 'cbt_math' || view === 'cbt_indo') && route.view !== view &&
+        !window.confirm('Tinggalkan latihan? Jawaban tersimpan, tetapi waktu tetap berjalan.')) {
+        history.pushState(null, '', hashForView(view, jumpQuestionId));
+        return;
+      }
+      setJumpQuestionId(route.questionId);
+      if (route.view === 'cbt_math' || route.view === 'cbt_indo') setExamSubject(activeExam?.subject ?? 'matematika');
+      setView(route.view);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [view, activeExam, lastResult, jumpQuestionId]);
+
+  useEffect(() => {
+    if (activeDeadline === undefined || view === 'cbt_math' || view === 'cbt_indo') return;
+    const finishExpired = () => {
+      const saved = storage.getActiveExam();
+      if (!saved || saved.deadline > Date.now()) return;
+      const questions = saved.subject === 'matematika' ? matematikaData : bahasaIndonesiaData;
+      const answers = normalizeAnswers(questions, saved.answers);
+      const now = Date.now();
+      const result: ExamResult = { id: now, subject: saved.subject, finishedAt: now, answers, ...scoreExam(questions, answers) };
+      storage.clearActiveExam();
+      storage.saveExamResult(result);
+      setActiveExam(null);
+      setExamSubject(saved.subject);
+      setExamAnswers(answers);
+      setLastResult(result);
+      setView('cbt_result');
+    };
+    const timeout = window.setTimeout(finishExpired, Math.max(0, activeDeadline - Date.now()) + 25);
+    return () => window.clearTimeout(timeout);
+  }, [activeDeadline, activeSubject, view]);
+
+  const handleExamProgress = useCallback((session: UserExamSession) => {
+    storage.setActiveExam(session);
+    setActiveExam(session);
   }, []);
 
   const handleToggleBookmark = (id: string) => {
@@ -56,15 +102,13 @@ export function App() {
     setStudiedProgress(storage.getStudyProgress());
   };
 
-  const handleResetData = () => {
-    setBookmarks([]);
-    setStudiedProgress({});
-    setStudentProfile(null);
-    setView('home');
-  };
-
   // Trigger CBT flow: always show Student Confirmation Form first
   const handleTriggerExam = (subj: SubjectType) => {
+    if (activeExam) {
+      setExamSubject(activeExam.subject);
+      setView(activeExam.subject === 'matematika' ? 'cbt_math' : 'cbt_indo');
+      return;
+    }
     setPendingExamSubject(subj);
     setShowStudentModal(true);
   };
@@ -74,6 +118,13 @@ export function App() {
     setStudentProfile(profile);
     setShowStudentModal(false);
     setExamSubject(pendingExamSubject);
+    const now = Date.now();
+    const session: UserExamSession = {
+      subject: pendingExamSubject, startTime: now, deadline: now + EXAM_DURATION_MS,
+      answers: {}, doubtList: [], currentIndex: 0,
+    };
+    storage.setActiveExam(session);
+    setActiveExam(session);
     setView(pendingExamSubject === 'matematika' ? 'cbt_math' : 'cbt_indo');
   };
 
@@ -87,10 +138,24 @@ export function App() {
     } else if (tab === 'report') setView('report');
   };
 
-  const handleFinishExam = (answers: Record<number, any>, doubts: number[]) => {
+  const handleFinishExam = (answers: ExamAnswers) => {
+    const questions = examSubject === 'matematika' ? matematikaData : bahasaIndonesiaData;
+    const totals = scoreExam(questions, answers);
+    const result: ExamResult = {
+      id: Date.now(), subject: examSubject, finishedAt: Date.now(),
+      answers, ...totals,
+    };
+    storage.saveExamResult(result);
+    storage.clearActiveExam();
+    setActiveExam(null);
+    setLastResult(result);
     setExamAnswers(answers);
-    setExamDoubts(doubts);
     setView('cbt_result');
+  };
+
+  const openStudy = (subject: SubjectType, questionId?: number) => {
+    setJumpQuestionId(questionId ?? null);
+    setView(subject === 'matematika' ? 'study_math' : 'study_indo');
   };
 
   const mathStudiedCount = Object.keys(studiedProgress).filter(k => k.startsWith('matematika-') && studiedProgress[k]).length;
@@ -98,8 +163,8 @@ export function App() {
 
   // Header configs per view
   let headerTitle = 'TKA SD Mastery';
-  let headerSubtitle = studentProfile 
-    ? `${studentProfile.name} (${studentProfile.school})`
+  let headerSubtitle = studentProfile?.name
+    ? `${studentProfile.name}${studentProfile.school ? ` (${studentProfile.school})` : ''}`
     : 'Bank Soal & Pembahasan Kelas 6';
   let showBack = false;
   let onBack: (() => void) | undefined = undefined;
@@ -121,7 +186,7 @@ export function App() {
     badgeText = 'Literasi';
     badgeColor = 'amber';
   } else if (view === 'cbt_result') {
-    headerTitle = 'Hasil Evaluasi Tryout';
+    headerTitle = 'Hasil Latihan CBT';
     headerSubtitle = examSubject === 'matematika' ? 'Matematika SD' : 'Bahasa Indonesia SD';
     showBack = true;
     onBack = () => setView('home');
@@ -129,7 +194,7 @@ export function App() {
     badgeColor = 'indigo';
   } else if (view === 'report') {
     headerTitle = 'Rapor Belajar Siswa';
-    headerSubtitle = studentProfile ? studentProfile.name : 'Statistik Penguasaan Materi';
+    headerSubtitle = studentProfile ? studentProfile.name : 'Progres belajar dan hasil latihan';
     showBack = true;
     onBack = () => setView('home');
     badgeText = 'Statistik';
@@ -158,10 +223,12 @@ export function App() {
       )}
 
       <div className="flex-1 w-full max-w-4xl mx-auto px-4 pt-4">
+        <React.Suspense fallback={<div role="status" className="py-12 text-center">Memuat halaman…</div>}>
         {view === 'home' && (
           <HomePage
-            onOpenStudy={(subj) => setView(subj === 'matematika' ? 'study_math' : 'study_indo')}
+            onOpenStudy={openStudy}
             onOpenExam={handleTriggerExam}
+            activeExam={activeExam}
             mathStudiedCount={mathStudiedCount}
             indoStudiedCount={indoStudiedCount}
             bookmarkCount={bookmarks.length}
@@ -170,6 +237,7 @@ export function App() {
 
         {view === 'study_math' && (
           <StudyPage
+            key={`matematika-${jumpQuestionId ?? 'all'}`}
             subject="matematika"
             questions={matematikaData}
             bookmarks={bookmarks}
@@ -182,6 +250,7 @@ export function App() {
 
         {view === 'study_indo' && (
           <StudyPage
+            key={`bahasa_indonesia-${jumpQuestionId ?? 'all'}`}
             subject="bahasa_indonesia"
             questions={bahasaIndonesiaData}
             bookmarks={bookmarks}
@@ -194,8 +263,10 @@ export function App() {
 
         {view === 'cbt_math' && (
           <CbtExamView
-            subjectName="Matematika (Numerasi SD)"
+            subjectName="Matematika"
             questions={matematikaData}
+            session={activeExam!}
+            onProgress={handleExamProgress}
             onFinishExam={handleFinishExam}
             onExit={() => setView('home')}
           />
@@ -203,8 +274,10 @@ export function App() {
 
         {view === 'cbt_indo' && (
           <CbtExamView
-            subjectName="Bahasa Indonesia (Literasi SD)"
+            subjectName="Bahasa Indonesia"
             questions={bahasaIndonesiaData}
+            session={activeExam!}
+            onProgress={handleExamProgress}
             onFinishExam={handleFinishExam}
             onExit={() => setView('home')}
           />
@@ -212,15 +285,15 @@ export function App() {
 
         {view === 'cbt_result' && (
           <ScoreReportModal
-            subjectName={examSubject === 'matematika' ? 'Matematika (Numerasi SD)' : 'Bahasa Indonesia (Literasi SD)'}
+            subjectName={examSubject === 'matematika' ? 'Matematika' : 'Bahasa Indonesia'}
             questions={examSubject === 'matematika' ? matematikaData : bahasaIndonesiaData}
             userAnswers={examAnswers}
+            result={lastResult}
             studentProfile={studentProfile}
             onRetry={() => handleTriggerExam(examSubject)}
             onGoHome={() => setView('home')}
             onReviewQuestion={(qId) => {
-              setJumpQuestionId(qId);
-              setView(examSubject === 'matematika' ? 'study_math' : 'study_indo');
+              openStudy(examSubject, qId);
             }}
           />
         )}
@@ -230,24 +303,24 @@ export function App() {
             mathStudiedCount={mathStudiedCount}
             indoStudiedCount={indoStudiedCount}
             bookmarks={bookmarks}
-            onOpenStudy={(subj) => setView(subj === 'matematika' ? 'study_math' : 'study_indo')}
-            onDataReset={handleResetData}
+            onOpenStudy={openStudy}
           />
         )}
+        </React.Suspense>
       </div>
 
       {/* Student Form Modal before CBT */}
-      <StudentFormModal
+      {showStudentModal && <StudentFormModal
         isOpen={showStudentModal}
-        subjectTitle={pendingExamSubject === 'matematika' ? 'Matematika (Numerasi SD)' : 'Bahasa Indonesia (Literasi SD)'}
+        subjectTitle={pendingExamSubject === 'matematika' ? 'Matematika' : 'Bahasa Indonesia'}
         initialProfile={studentProfile}
         onClose={() => setShowStudentModal(false)}
         onSubmit={handleStudentFormSubmit}
-      />
+      />}
 
       {view !== 'cbt_math' && view !== 'cbt_indo' && (
         <>
-          <Footer onDataReset={handleResetData} />
+          <Footer />
           <BottomNav activeTab={activeNavTab} onSelectTab={handleNavSelect} />
         </>
       )}

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bookmark, ChevronDown, ChevronUp, Check, CheckCircle, FileText, Image as ImageIcon } from 'lucide-react';
+import { Bookmark, ChevronDown, ChevronUp, CheckCircle, FileText } from 'lucide-react';
 import { QuestionItem } from '../../types/tka';
 import { MathView } from '../ui/MathView';
 import { ExplanationBox } from './ExplanationBox';
 import { tapScale } from '../../lib/motion';
+import { matrixChoices } from '../../lib/exam';
 
 interface StudyCardProps {
   item: QuestionItem;
@@ -22,13 +23,15 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   onToggleStudied,
 }) => {
   const [showExplanation, setShowExplanation] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [matrixAnswers, setMatrixAnswers] = useState<Record<string, string>>({});
 
   const bookmarkKey = `${item.subject}-${item.id}`;
 
   const handleSelectOption = (optId: string) => {
-    setSelectedOption(optId);
+    setSelectedOptions(prev => item.type === 'pg_kompleks'
+      ? prev.includes(optId) ? prev.filter(id => id !== optId) : [...prev, optId]
+      : [optId]);
   };
 
   const handleSelectMatrix = (rowId: string, val: string) => {
@@ -81,7 +84,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             }`}
           >
             <CheckCircle className={`w-3.5 h-3.5 ${isStudied ? 'text-emerald-500' : ''}`} />
-            <span className="hidden sm:inline">{isStudied ? 'Sudah Dipahami' : 'Tandai Paham'}</span>
+            <span className="hidden sm:inline">{isStudied ? 'Sudah Dipelajari' : 'Tandai Dipelajari'}</span>
           </motion.button>
         </div>
       </div>
@@ -105,14 +108,14 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                 />
               </div>
             )}
-            <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-h-56 overflow-y-auto pr-1">
+            <div className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed max-h-56 overflow-y-auto pr-1">
               <MathView content={item.stimulusText} />
             </div>
           </div>
         )}
 
         {/* Question Text */}
-        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
+        <div className="text-base font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
           {item.questionImage && (
             <div className="my-3 text-center">
               <img
@@ -134,13 +137,14 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             </span>
             <div className="grid grid-cols-1 gap-2">
               {item.options.map((opt) => {
-                const isSelected = selectedOption === opt.id;
+                const isSelected = selectedOptions.includes(opt.id);
                 return (
                   <motion.button
                     key={opt.id}
                     whileTap={tapScale}
                     onClick={() => handleSelectOption(opt.id)}
-                    className={`w-full text-left p-3 rounded-xl border text-xs sm:text-sm flex items-start gap-3 transition-all cursor-pointer ${
+                    aria-pressed={isSelected}
+                    className={`w-full text-left p-3 rounded-xl border text-sm sm:text-base flex items-start gap-3 transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500/80 text-indigo-950 dark:text-indigo-200 font-medium shadow-sm'
                         : 'bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80'
@@ -177,17 +181,18 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                   key={row.id}
                   className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2"
                 >
-                  <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-800 dark:text-slate-200">
+                  <div className="flex items-start gap-2 text-sm sm:text-base text-slate-800 dark:text-slate-200">
                     <span className="font-bold text-indigo-500">{row.id}.</span>
                     <MathView content={row.statement} />
                   </div>
                   <div className="flex gap-2 justify-end">
-                    {['Benar', 'Salah'].map((val) => {
+                    {matrixChoices(item).map((val) => {
                       const isChosen = matrixAnswers[row.id] === val;
                       return (
                         <button
                           key={val}
                           onClick={() => handleSelectMatrix(row.id, val)}
+                          aria-pressed={isChosen}
                           className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
                             isChosen
                               ? val === 'Benar'
@@ -227,7 +232,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
         <AnimatePresence>
           {showExplanation && (
             <ExplanationBox
-              officialKey={item.officialKey}
+              answerKey={item.answerKey}
               concept={item.explanation.concept}
               steps={item.explanation.steps}
               tips={item.explanation.tips}

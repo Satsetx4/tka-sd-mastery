@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import confetti from 'canvas-confetti';
-import { Award, CheckCircle2, XCircle, RotateCcw, Home, Eye, Printer, School, User, Calendar } from 'lucide-react';
-import { QuestionItem, StudentProfile } from '../../types/tka';
+import { Award, RotateCcw, Home, Eye, Printer, School, User, Calendar } from 'lucide-react';
+import type { ExamAnswers, ExamResult, QuestionItem, StudentProfile } from '../../types/tka';
 import { tapScale } from '../../lib/motion';
+import { isComplete, isCorrect, scoreExam } from '../../lib/exam';
 
 interface ScoreReportProps {
   subjectName: string;
   questions: QuestionItem[];
-  userAnswers: Record<number, any>;
+  userAnswers: ExamAnswers;
+  result: ExamResult | null;
   studentProfile: StudentProfile | null;
   onRetry: () => void;
   onGoHome: () => void;
@@ -19,67 +20,19 @@ export const ScoreReportModal: React.FC<ScoreReportProps> = ({
   subjectName,
   questions,
   userAnswers,
+  result,
   studentProfile,
   onRetry,
   onGoHome,
   onReviewQuestion,
 }) => {
-  let correctCount = 0;
-  let wrongCount = 0;
-  let emptyCount = 0;
-
-  const results = questions.map((q) => {
-    const userAns = userAnswers[q.id];
-    let isCorrect = false;
-
-    if (!userAns) {
-      emptyCount++;
-    } else if (q.type === 'matrix') {
-      let allRowCorrect = true;
-      if (typeof userAns === 'object' && q.matrixRows) {
-        for (const row of q.matrixRows) {
-          if (userAns[row.id] !== row.correctAnswer) {
-            allRowCorrect = false;
-            break;
-          }
-        }
-      } else {
-        allRowCorrect = false;
-      }
-      isCorrect = allRowCorrect;
-      if (isCorrect) correctCount++;
-      else wrongCount++;
-    } else {
-      const keyLetterMatch = q.officialKey.match(/\(([A-D])\)/);
-      const expectedLetter = keyLetterMatch ? keyLetterMatch[1] : '';
-      isCorrect = userAns === expectedLetter;
-      if (isCorrect) correctCount++;
-      else wrongCount++;
-    }
-
-    return {
-      question: q,
-      userAns,
-      isCorrect,
-    };
-  });
-
-  const finalScore = Math.round((correctCount / questions.length) * 100);
-  const dateStr = new Date().toLocaleDateString('id-ID', {
+  const { correct: correctCount, wrong: wrongCount, empty: emptyCount, score: finalScore } = scoreExam(questions, userAnswers);
+  const results = questions.map(question => ({ question, correct: isCorrect(question, userAnswers[question.id]), complete: isComplete(question, userAnswers[question.id]) }));
+  const dateStr = result ? new Date(result.finishedAt).toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  });
-
-  useEffect(() => {
-    if (finalScore >= 70) {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-    }
-  }, [finalScore]);
+  }) : '';
 
   const handlePrint = () => {
     window.print();
@@ -101,30 +54,25 @@ export const ScoreReportModal: React.FC<ScoreReportProps> = ({
 
           <div>
             <span className="text-xs uppercase font-bold tracking-widest text-indigo-200 block">
-              Sertifikat Rapor Simulasi TKA SD
+              Hasil Latihan TKA SD
             </span>
             <h2 className="text-xl sm:text-2xl font-extrabold">{subjectName}</h2>
           </div>
 
           {/* Student Identity Box */}
-          {studentProfile && (
+          {studentProfile && (studentProfile.name || studentProfile.school) && (
             <div className="bg-white/15 backdrop-blur-md rounded-2xl p-4 max-w-md mx-auto text-left border border-white/20 space-y-1.5 text-xs sm:text-sm">
-              <div className="flex items-center gap-2">
+              {studentProfile.name && <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-amber-300 shrink-0" />
                 <span className="font-bold text-white text-sm sm:text-base">
                   {studentProfile.name}
                 </span>
-              </div>
+              </div>}
               <div className="flex items-center justify-between text-indigo-100 text-xs flex-wrap gap-1">
-                <span className="flex items-center gap-1.5">
+                {studentProfile.school && <span className="flex items-center gap-1.5">
                   <School className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
                   <span>{studentProfile.school}</span>
-                </span>
-                {studentProfile.nisn && (
-                  <span className="font-num text-[11px] bg-white/20 px-2 py-0.5 rounded-md">
-                    NISN: {studentProfile.nisn}
-                  </span>
-                )}
+                </span>}
               </div>
               <div className="flex items-center gap-1 text-[11px] text-indigo-200 pt-1 border-t border-white/10">
                 <Calendar className="w-3 h-3" />
@@ -142,11 +90,7 @@ export const ScoreReportModal: React.FC<ScoreReportProps> = ({
           </div>
 
           <p className="text-xs sm:text-sm text-indigo-100 max-w-sm mx-auto">
-            {finalScore >= 85
-              ? 'Luar biasa! Capaian akademikmu sudah sangat matang dan siap menghadapi ujian TKA resmi!'
-              : finalScore >= 70
-              ? 'Bagus sekali! Nilaimu di atas standar. Pelajari nomor yang masih salah untuk hasil optimal.'
-              : 'Tetap semangat! Gunakan modul pembahasan terperinci di bawah untuk memperdalam konsep yang masih keliru.'}
+            Skor ini hanya hasil latihan pada kumpulan soal ini, bukan nilai atau prediksi hasil TKA. Tinjau soal yang belum tepat untuk melanjutkan belajar.
           </p>
         </div>
       </motion.div>
@@ -215,11 +159,11 @@ export const ScoreReportModal: React.FC<ScoreReportProps> = ({
         </h3>
 
         <div className="space-y-2">
-          {results.map(({ question: q, isCorrect }) => (
+          {results.map(({ question: q, correct, complete }) => (
             <div
               key={q.id}
               className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-colors ${
-                isCorrect
+                correct
                   ? 'bg-white dark:bg-slate-900/60 border-emerald-500/20'
                   : 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-500/30'
               }`}
@@ -227,7 +171,7 @@ export const ScoreReportModal: React.FC<ScoreReportProps> = ({
               <div className="flex items-center gap-3 min-w-0">
                 <span
                   className={`w-7 h-7 rounded-lg flex items-center justify-center font-num text-xs font-bold shrink-0 ${
-                    isCorrect
+                    correct
                       ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                       : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                   }`}
@@ -239,7 +183,7 @@ export const ScoreReportModal: React.FC<ScoreReportProps> = ({
                     {q.topic}
                   </span>
                   <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                    Kunci: <strong className="text-slate-700 dark:text-slate-300">{q.officialKey}</strong>
+                    {complete ? (correct ? 'Benar' : 'Perlu ditinjau') : 'Belum dijawab'} · Kunci: <strong className="text-slate-700 dark:text-slate-300">{q.answerKey}</strong>
                   </span>
                 </div>
               </div>
