@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 button { min-height: 44px; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {

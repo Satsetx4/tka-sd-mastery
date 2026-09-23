@@ -90,7 +90,7 @@ export const StudyPage: React.FC<StudyPageProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5 pb-1 text-xs">
           {([
             { id: 'all', label: `Semua (${questions.length})` },
             { id: 'unstudied', label: 'Belum Dipelajari' },
